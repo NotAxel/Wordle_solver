@@ -1,0 +1,5 @@
+salet
+crate
+trace
+slate
+reast
