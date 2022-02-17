@@ -1,4 +1,5 @@
 from collections import defaultdict
+from ensurepip import version
 import random
 import os
 from typing import DefaultDict, Tuple
@@ -38,7 +39,7 @@ def get_five_first_guesses() -> list[str]:
 def find_letter_indexs(word, letter):
     return [i for i, ltr in enumerate(word) if ltr == letter]
 
-def compare_guess_result(word, curr_guess, guess_result):
+def compare_guess_result(word :  str, curr_guess : str, guess_result : str):
 
     for i in range(len(guess_result)):
         # ! correct letter at correct place
@@ -53,8 +54,6 @@ def compare_guess_result(word, curr_guess, guess_result):
             elif curr_guess[i] not in word:
                 return False
         elif guess_result[i] == '.':
-            # if word[i] == curr_guess[i]:
-            #     return False
 
             count = 0
 
@@ -103,7 +102,7 @@ def pick_word(word_list) -> str:
 
     return ''
 
-def play(ai = False, verbose = False, answer = '') -> int:
+def play(ai = False, verbose = False, answer = '', selection_version = '') -> int:
 
     guess_result = ''
     curr_guess = ''
@@ -117,26 +116,27 @@ def play(ai = False, verbose = False, answer = '') -> int:
         answer = random.choice(answer_key)
         print("Answer is: ", answer)
     
-    while len(answer_key) > 0:
+    while len(word_bank) > 0:
         if verbose and not ai:
-            print("Remaing words in answer key: ", len(answer_key))
+            print("Remaing words in answer key: ", len(word_bank))
+
+        if num_guesses == 0 and selection_version == '3blue1brown':
+            curr_guess = random.choice(get_five_first_guesses())
+        else:
+            curr_guess = pick_word(word_list=word_bank)
+
+        if verbose or not ai: 
+                print("Current guess: ", curr_guess)
 
         if ai:
-            # if num_guesses == 0:
-            #     curr_guess = random.choice(get_five_first_guesses())
-            # else:
-            curr_guess = pick_word(word_list=answer_key)
-
-            if verbose:
-                print("Current guess: ", curr_guess)
 
             guess_result = evaluate_ai_guess(guessed_word=curr_guess, answer=answer)
 
         else:
-            curr_guess = input('Current guess: ').lower()
-        
-            guess_result = evaluate_ai_guess(guessed_word=curr_guess, answer=answer)
-            # print(guess_result)
+            guess_result = input('Guess result: ')
+            
+        if verbose:
+            print(guess_result)
 
         num_guesses += 1
 
@@ -145,7 +145,7 @@ def play(ai = False, verbose = False, answer = '') -> int:
             break
         
         
-        answer_key = update_possible_words(answer_key, curr_guess, guess_result)
+        word_bank = update_possible_words(word_bank, curr_guess, guess_result)
         
     if guess_result == '!!!!!':
         print("guessed in", num_guesses)
@@ -156,67 +156,17 @@ def play(ai = False, verbose = False, answer = '') -> int:
     return num_guesses
         
 
-n_games = 100
+n_games = 1
 total_guesses = 0
 
+v_one = ''
+v_two = '3blue1brown'
+
+random.seed(1)
+
 for game_num in range(n_games):
-    total_guesses += play(ai=True, verbose=False)
+    total_guesses += play(ai=False, verbose=True, selection_version=v_one, answer='nines')
 
 print("average guesses", (total_guesses / n_games))
 
 # play(ai=False, verbose=True, answer='plaid')
-
-
-def main():
-    clear = lambda: os.system('cls')
-    # get list of possible word answers
-    possible_words_obj = possible_words()
-
-    rec_first_guesses = get_five_first_guesses()
-
-    # NOTE Only needs to be called once to create possible_words_letter_frequency.txt
-    # generate_word_frequency_value_file(possible_words=possible_words,
-    #                                    letter_frequencys=letter_frequencys)
-    clear()
-
-
-    for turn_num in range(0, 6):
-        possible_word_count = possible_words_obj.get_possible_word_count()
-        print(_GAME_BOARD)
-
-        if turn_num == 0 and _TUTORIAL_MODE:
-            print("Welcome to Wordle solver")
-            print("Make your own first guess or use one of our 5 recommended first guesses.")
-            print(rec_first_guesses)
-            print()
-
-        print(possible_words_obj)
-        print("Recommended words: " + str(rec_first_guesses))
-        print("Turn %s:" % (turn_num + 1))
-
-        if turn_num == 0 and _TUTORIAL_MODE:
-            print("Input letters by typing the 'letter' followed by:\n" +
-            "-'.' if the letter does not exist in the word\n" + 
-            "-'?' if it exists in the word but is in the wrong place\n" + 
-            "-'!' if it is the correct letter in the correct spot.\n" +
-            "with a space between each letter \n" 
-            "Example: 'G. U. E? S! S?'")
-
-        
-        while True:
-            guessed_word = list(map(str, input("Input guesssed word: ").lower().split()))
-        
-            if len(guessed_word) == 5:
-                _GAME_BOARD.board[turn_num] = guessed_word
-                print(guessed_word)
-                clear()
-            
-                break
-        
-        update_possible_words(turn_num=turn_num, possible_words=possible_words_obj)
-        
-
-
-    
-# if __name__ == "__main__":
-#     main()
